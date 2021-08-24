@@ -152,6 +152,8 @@ async function grabUserExercises(req, res) {
     exercise.date = exercise.date.toString().slice(0, 15);
   })
 
+  delete userExercisesEdit["__v"]
+
   // console.log(userExercisesEdit);
   res.json(userExercisesEdit);
 }
