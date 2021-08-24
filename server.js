@@ -128,7 +128,7 @@ async function grabUserExercises(req, res) {
     latest = new Date(latest);
     userExercises = await userModel.findOne({
       _id: userId,
-      "log.date": { $lte: latest, $gte: earliest }
+      "log.date": { $lte: new Date(latest), $gte: new Date(earliest) }
     })
   }
 
