@@ -88,9 +88,12 @@ async function saveExercise(req, res) {
   let exerciseDuration = req.body.duration;
   let exerciseDate = req.body.date;
 
-  if(exerciseDate == "") {
+  if(exerciseDate == "" || exerciseDate == undefined) {
     let currentTime = new Date();
     exerciseDate = currentTime.toString().slice(0, 15);
+  }
+  else{
+    exerciseDate = exerciseDate.toString().slice(0, 15);
   }
 
   // console.log(exerciseDate.toString());
