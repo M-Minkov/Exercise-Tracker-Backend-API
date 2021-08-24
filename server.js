@@ -25,12 +25,12 @@ const exerciseSchema = new Schema({
   description: String,
   duration: Number,
   date: Date
-})
+}, { _id : false, _v : false})
 
 
 const userSchema = new Schema({
   username: String,
-  exerciseArray: {
+  log: {
     type: [exerciseSchema],
     default: []
   }
@@ -39,6 +39,13 @@ const userSchema = new Schema({
 
 const userModel = mongoose.model("user", userSchema);
 const exerciseModel = mongoose.model("exercise", exerciseSchema);
+
+/*
+userModel.deleteMany({}, (err, done) => {
+  console.log("deleted, gg");
+  if(err) {console.log(err);}
+});
+*/
 
 
 async function postUserCreate(req, res) {
@@ -95,11 +102,16 @@ async function saveExercise(req, res) {
 
   let userUpdated = await userModel.findOneAndUpdate(
     {_id: userId},
-    { $push: {exerciseArray: exercise}},
+    { $push: {log: exercise}},
     {new : true}
   );
+  let userAndExerciseInfo = exercise.toObject();
+  userAndExerciseInfo.date = userAndExerciseInfo.date.toString().slice(0, 15);
 
-  res.json(userUpdated)
+  userAndExerciseInfo._id = userId
+  userAndExerciseInfo.username = userUpdated.username;
+
+  res.json(userAndExerciseInfo)
 }
 
 
@@ -108,22 +120,21 @@ async function grabUserExercises(req, res) {
   let earliest = req.params.from;
   let latest = req.params.to;
   let maxLogs = req.params.limit;
-
+  // console.log(earliest);
   let userExercises;
 
-  if(earliest == undefined) {
-    userExercises = await userModel.findOne(
-      {_id: userId,
-      "exerciseArray.date": { $lte: latest, $gte: earliest }
-      },
-      'exerciseArray'
-    )
+  if(earliest != undefined) {
+    earliest = new Date(earliest);
+    latest = new Date(latest);
+    userExercises = await userModel.findOne({
+      _id: userId,
+      "log.date": { $lte: latest, $gte: earliest }
+    })
   }
 
   else {
     userExercises = await userModel.findOne(
-      {_id: userId, },
-      'exerciseArray'
+      {_id: userId }
     )
   }
 
@@ -131,11 +142,15 @@ async function grabUserExercises(req, res) {
 
   userExercisesEdit = userExercises.toObject();
 
-  userExercisesEdit.count = userExercisesEdit["exerciseArray"].length;
+  userExercisesEdit.count = userExercisesEdit["log"].length;
 
   if(maxLogs != undefined && userExercisesEdit.count > maxLogs) {
-    userExercisesEdit["exerciseArray"].length = maxLogs
+    userExercisesEdit["log"].length = maxLogs
   }
+
+  userExercisesEdit["log"].forEach(function (exercise) {
+    exercise.date = exercise.date.toString().slice(0, 15);
+  })
 
   console.log(userExercisesEdit);
   res.json(userExercisesEdit);
