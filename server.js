@@ -92,7 +92,7 @@ async function saveExercise(req, res) {
     exerciseDate = new Date();
   }
 
-  console.log(exerciseDate.toString());
+  // console.log(exerciseDate.toString());
   
   const exercise = new exerciseModel({
     description: exerciseDescription,
@@ -152,7 +152,7 @@ async function grabUserExercises(req, res) {
     exercise.date = exercise.date.toString().slice(0, 15);
   })
 
-  console.log(userExercisesEdit);
+  // console.log(userExercisesEdit);
   res.json(userExercisesEdit);
 }
 
