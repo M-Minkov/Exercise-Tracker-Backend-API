@@ -126,7 +126,7 @@ async function grabUserExercises(req, res) {
   );
 
 
-  userExercisesEdit = userExercises.toObject();
+  let userExercisesEdit = userExercises.toObject();
 
   if(earliest != undefined) {
     earliest = new Date(earliest);
