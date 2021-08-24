@@ -93,7 +93,8 @@ async function saveExercise(req, res) {
     exerciseDate = currentTime.toString().slice(0, 15);
   }
   else{
-    exerciseDate = exerciseDate.toString().slice(0, 15);
+    let dateObject = new Date(exerciseDate)
+    exerciseDate = dateObject.toString().slice(0, 15);
   }
 
   // console.log(exerciseDate.toString());
@@ -113,17 +114,16 @@ async function saveExercise(req, res) {
 
   userAndExerciseInfo._id = userId
   userAndExerciseInfo.username = userUpdated.username;
-
   res.json(userAndExerciseInfo)
 }
 
 
 async function grabUserExercises(req, res) {
   let userId = req.params._id;
-  let earliest = req.params.from;
-  let latest = req.params.to;
-  let maxLogs = req.params.limit;
-  // console.log(earliest);
+  let earliest = req.query.from;
+  let latest = req.query.to;
+  let maxLogs = req.query.limit;
+  // console.log([earliest, latest, maxLogs]);
   let userExercises = await userModel.findOne(
       {_id: userId }
   );
@@ -131,7 +131,9 @@ async function grabUserExercises(req, res) {
 
   let userExercisesEdit = userExercises.toObject();
 
-  if(earliest != undefined) {
+  userExercisesEdit.count = userExercisesEdit["log"].length;
+
+  if(earliest) {
     earliest = new Date(earliest);
     latest = new Date(latest);
     
@@ -140,7 +142,11 @@ async function grabUserExercises(req, res) {
       return workoutDate >= earliest && workoutDate <= latest;
     })
 
+    console.log(userExercisesEdit["log"])
+
     userExercisesEdit["log"] = filteredWorkouts;
+
+    console.log(userExercisesEdit["log"])
     
   }
 
@@ -149,7 +155,7 @@ async function grabUserExercises(req, res) {
     userExercisesEdit["log"].length = maxLogs
   }
 
-  userExercisesEdit.count = userExercisesEdit["log"].length;
+
 
   delete userExercisesEdit["__v"]
 
