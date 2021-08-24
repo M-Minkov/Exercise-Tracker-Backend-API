@@ -121,32 +121,31 @@ async function grabUserExercises(req, res) {
   let latest = req.params.to;
   let maxLogs = req.params.limit;
   // console.log(earliest);
-  let userExercises;
-
-  if(earliest != undefined) {
-    earliest = new Date(earliest);
-    latest = new Date(latest);
-    userExercises = await userModel.findOne({
-      _id: userId,
-      "log.date": { $lte: new Date(latest), $gte: new Date(earliest) }
-    })
-  }
-
-  else {
-    userExercises = await userModel.findOne(
+  let userExercises = await userModel.findOne(
       {_id: userId }
-    )
-  }
-
+  );
 
 
   userExercisesEdit = userExercises.toObject();
 
-  userExercisesEdit.count = userExercisesEdit["log"].length;
+  if(earliest != undefined) {
+    earliest = new Date(earliest);
+    latest = new Date(latest);
+    
+    var filteredDates = userExercisesEdit["log"].filter(function(value, index, arr) {
+      return value >= earliest && value <= latest
+    })
+
+    userExercisesEdit["log"] = filteredDates;
+    
+  }
+
 
   if(maxLogs != undefined && userExercisesEdit.count > maxLogs) {
     userExercisesEdit["log"].length = maxLogs
   }
+
+  userExercisesEdit.count = userExercisesEdit["log"].length;
 
   userExercisesEdit["log"].forEach(function (exercise) {
     exercise.date = exercise.date.toString().slice(0, 15);
