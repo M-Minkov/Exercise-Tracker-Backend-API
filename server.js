@@ -24,7 +24,7 @@ app.get('/', (req, res) => {
 const exerciseSchema = new Schema({
   description: String,
   duration: Number,
-  date: Date
+  date: String
 }, { _id : false, _v : false})
 
 
@@ -89,7 +89,8 @@ async function saveExercise(req, res) {
   let exerciseDate = req.body.date;
 
   if(exerciseDate == "") {
-    exerciseDate = new Date();
+    let currentTime = new Date();
+    exerciseDate = currentTime.toString().slice(0, 15);
   }
 
   // console.log(exerciseDate.toString());
@@ -106,7 +107,6 @@ async function saveExercise(req, res) {
     {new : true}
   );
   let userAndExerciseInfo = exercise.toObject();
-  userAndExerciseInfo.date = userAndExerciseInfo.date.toString().slice(0, 15);
 
   userAndExerciseInfo._id = userId
   userAndExerciseInfo.username = userUpdated.username;
@@ -132,11 +132,12 @@ async function grabUserExercises(req, res) {
     earliest = new Date(earliest);
     latest = new Date(latest);
     
-    var filteredDates = userExercisesEdit["log"].filter(function(value, index, arr) {
-      return value >= earliest && value <= latest
+    var filteredWorkouts = userExercisesEdit["log"].filter(function(value, index, arr) {
+      let workoutDate = new Date(value.date);
+      return workoutDate >= earliest && workoutDate <= latest;
     })
 
-    userExercisesEdit["log"] = filteredDates;
+    userExercisesEdit["log"] = filteredWorkouts;
     
   }
 
@@ -146,10 +147,6 @@ async function grabUserExercises(req, res) {
   }
 
   userExercisesEdit.count = userExercisesEdit["log"].length;
-
-  userExercisesEdit["log"].forEach(function (exercise) {
-    exercise.date = exercise.date.toString().slice(0, 15);
-  })
 
   delete userExercisesEdit["__v"]
 
