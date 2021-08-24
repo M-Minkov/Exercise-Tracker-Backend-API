@@ -105,14 +105,38 @@ async function saveExercise(req, res) {
 
 async function grabUserExercises(req, res) {
   let userId = req.params._id;
-  let userExercises = await userModel.findOne(
-    {_id: userId},
-    'exerciseArray'
-  )
+  let earliest = req.params.from;
+  let latest = req.params.to;
+  let maxLogs = req.params.limit;
+
+  let userExercises;
+
+  if(earliest == undefined) {
+    userExercises = await userModel.findOne(
+      {_id: userId,
+      "exerciseArray.date": { $lte: latest, $gte: earliest }
+      },
+      'exerciseArray'
+    )
+  }
+
+  else {
+    userExercises = await userModel.findOne(
+      {_id: userId, },
+      'exerciseArray'
+    )
+  }
+
+
 
   userExercisesEdit = userExercises.toObject();
-  
+
   userExercisesEdit.count = userExercisesEdit["exerciseArray"].length;
+
+  if(maxLogs != undefined && userExercisesEdit.count > maxLogs) {
+    userExercisesEdit["exerciseArray"].length = maxLogs
+  }
+
   console.log(userExercisesEdit);
   res.json(userExercisesEdit);
 }
