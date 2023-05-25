@@ -71,7 +71,7 @@ async function postUserCreate(req, res) {
 
 async function getAllUsers(req, res) {
   try {
-    let allUsers = await userModel.find({}, '_id username');
+    let allUsers = await userModel.find({}, '_id username log');
     res.send(allUsers);
   }
   catch {
@@ -104,12 +104,21 @@ async function saveExercise(req, res) {
     duration: exerciseDuration,
     date: exerciseDate
   })
+  let userUpdated;
+  try {
+    userUpdated = await userModel.findOneAndUpdate(
+      {_id: userId},
+      { $push: {log: exercise}},
+      {new : true}
+    );
+  }
+  catch {
+    console.log("Not a real ID");
+    res.json({"ID":false});
+    return;
+  }
 
-  let userUpdated = await userModel.findOneAndUpdate(
-    {_id: userId},
-    { $push: {log: exercise}},
-    {new : true}
-  );
+   
   let userAndExerciseInfo = exercise.toObject();
 
   userAndExerciseInfo._id = userId
@@ -119,48 +128,27 @@ async function saveExercise(req, res) {
 
 
 async function grabUserExercises(req, res) {
-  let userId = req.params._id;
+  let userId = req.query._id;
   let earliest = req.query.from;
   let latest = req.query.to;
   let maxLogs = req.query.limit;
-  // console.log([earliest, latest, maxLogs]);
-  let userExercises = await userModel.findOne(
-      {_id: userId }
-  );
 
-
-  let userExercisesEdit = userExercises.toObject();
-
-  userExercisesEdit.count = userExercisesEdit["log"].length;
-
-  if(earliest) {
-    earliest = new Date(earliest);
-    latest = new Date(latest);
-    
-    var filteredWorkouts = userExercisesEdit["log"].filter(function(value, index, arr) {
-      let workoutDate = new Date(value.date);
-      return workoutDate >= earliest && workoutDate <= latest;
-    })
-
-    console.log(userExercisesEdit["log"])
-
-    userExercisesEdit["log"] = filteredWorkouts;
-
-    console.log(userExercisesEdit["log"])
-    
+  if(userId == undefined || userId == "") {
+    return getAllUsers(req, res);
   }
 
-
-  if(maxLogs != undefined && userExercisesEdit.count > maxLogs) {
-    userExercisesEdit["log"].length = maxLogs
+  // grabs all exercises of userId
+  let userExercises;
+  try {
+    userExercises = await userModel.findById(userId, 'log');
+  }
+  catch {
+    console.log("Not a real ID");
+    res.json({"ID":false});
+    return;
   }
 
-
-
-  delete userExercisesEdit["__v"]
-
-  // console.log(userExercisesEdit);
-  res.json(userExercisesEdit);
+  return res.json(userExercises);
 }
 
 
@@ -170,6 +158,7 @@ app.get("/api/users", getAllUsers);
 
 app.post("/api/users/:_id/exercises", saveExercise);
 app.get("/api/users/:_id/logs", grabUserExercises);
+app.get("/api/users/logs", grabUserExercises);
 
 
 const listener = app.listen(process.env.PORT || 3000, () => {

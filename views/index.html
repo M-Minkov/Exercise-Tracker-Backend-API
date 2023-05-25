@@ -27,7 +27,11 @@
       </form>
       <p>
         <strong>GET user's exercise log: </strong>
-        <code>GET /api/users/:_id/logs?[&amp;from][&amp;to][&amp;limit]</code>
+        <code>GET /api/users/logs?[&_id]</code>
+        <form id="get_form" action="/api/users/logs" method="get">
+          <input id="uid" type="text" name="_id" placeholder="_id">
+          <input type="submit" value="getgo">
+        </form>
       </p>
       <p><strong>[ ]</strong> = optional</p>
       <p><strong>from, to</strong> = dates (yyyy-mm-dd); <strong>limit</strong> = number</p>
